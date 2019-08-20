@@ -1,18 +1,22 @@
 <?php
 
 $smsCronRoot = str_replace("\SyncDistributorPasswordSent", "", getcwd());
-define('__PATH20__', $smsCronRoot.'\sites\all\modules\VestigePOS\VestigePOS');
-include_once (__PATH20__.'\Business\SendSMS.php');
-include_once (__PATH20__.'\Business\DBHelper.php');
+define('__PATH21__', $smsCronRoot.'\sites\all\modules\VestigePOS\VestigePOS');
+include_once (__PATH21__.'\Business\SendSMS.php');
+include_once (__PATH21__.'\Business\DBHelper.php');
 		
-SyncDistributorPasswordSent();
+InvoiceVoucherConsumeSMSSent();
 
-function SyncDistributorPasswordSent(){
+function InvoiceVoucherConsumeSMSSent(){
 	try{
 		$connectionString = new DBHelper();
 		$pdo_db = $connectionString->dbConnection();
 		$pdo_db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-		$sql = "exec sp_sentMobilePasswordByCron ''";
+		$sql = "Select DistributorMobNumber MobileNo,Dm.DistributorId,VoucherSrNo,Location,ivct.InvoiceNo,Convert(date,ivct.modifiedDate) modifiedDate 
+					from [dbo].[InvoiceVoucherConsumptionTrack] ivct(NOLOCK)
+					Inner Join DistributorMaster DM (NOLOCK)
+					On ivct.DistributorId = DM.DistributorId
+					Where Status=1";
 		$stmt = $pdo_db->prepare($sql);
 		$stmt->execute();
 		$results = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -21,27 +25,26 @@ function SyncDistributorPasswordSent(){
 		{
 			for($i=0;$i<sizeof($results);$i++){
 				$distributorId = $results[$i]['DistributorId'];
-				$mobNo = $results[$i]['MobNo'];
-				$Password = $results[$i]['Password'];
+				$mobileNo = $results[$i]['MobileNo'];
+				$voucherSrNo = $results[$i]['VoucherSrNo'];
+				$location = $results[$i]['Location'];
+				$invoiceNo = $results[$i]['InvoiceNo'];
+				$date = $results[$i]['modifiedDate'];
 				$SendSMS = new SendSMS();
-				$response = $SendSMS -> sendSMSToDistributor($mobNo, $distributorId, $Password);
+				$response = $SendSMS -> sendInvoiceVoucherConsumeSMS($mobileNo,$voucherSrNo,$location,$distributorId,$date);
 				$msgApiResponse = json_decode($response,true);
 				$smsResponse = substr($msgApiResponse['msg'],0,4);
 				if($smsResponse == '1701'){
-					$sql2="Update [pmmyvestigin].[dbo].[V2_DistributorMaster] Set is_import_ho=2 where DistributorId=$distributorId and is_import_ho=1";
+					$sql2="Update InvoiceVoucherConsumptionTrack Set Status=2 where DistributorId=$distributorId and InvoiceNO='$invoiceNo'";
 					$stmt = $pdo_db->prepare($sql2);
 					$stmt->execute();	
-				}							
+				}				
 			}
 		}
 		$ReturnData= formatJSONResult(json_encode('Successfully executed'),'','');
-	}
-	catch(Exception $e)
-	{
+	}catch(Exception $e){
 		$ReturnData = formatJSONResult('',$e->getMessage(),'');
-
-	}
-		
+	}		
 	return $ReturnData;
 }
 
