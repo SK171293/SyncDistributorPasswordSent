@@ -12,7 +12,7 @@ function InvoiceVoucherConsumeSMSSent(){
 		$connectionString = new DBHelper();
 		$pdo_db = $connectionString->dbConnection();
 		$pdo_db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-		$sql = "Select DistributorMobNumber MobileNo,Dm.DistributorId,VoucherSrNo,Location,ivct.InvoiceNo,Convert(date,ivct.modifiedDate) modifiedDate 
+		$sql = "Select top 50 DistributorMobNumber MobileNo,Dm.DistributorId,VoucherSrNo,Location,ivct.InvoiceNo,Convert(date,ivct.modifiedDate) modifiedDate 
 					from [dbo].[InvoiceVoucherConsumptionTrack] ivct(NOLOCK)
 					Inner Join DistributorMaster DM (NOLOCK)
 					On ivct.DistributorId = DM.DistributorId
