@@ -1,18 +1,20 @@
 <?php
+$smsCronRoot = str_replace("/SyncDistributorPasswordSent", "", getcwd());
+define('__PATH21__', $smsCronRoot.'/sites/all/modules/VestigePOS/VestigePOS');
+include_once (__PATH21__.'/Business/SendSMS.php');
+include_once (__PATH21__.'/Business/DBHelper.php');
 
-$smsCronRoot = str_replace("\SyncDistributorPasswordSent", "", getcwd());
-define('__PATH21__', $smsCronRoot.'\sites\all\modules\VestigePOS\VestigePOS');
-include_once (__PATH21__.'\Business\SendSMS.php');
-include_once (__PATH21__.'\Business\DBHelper.php');
-		
 InvoiceVoucherConsumeSMSSent();
 
 function InvoiceVoucherConsumeSMSSent(){
 	try{
+
 		$connectionString = new DBHelper();
+
 		$pdo_db = $connectionString->dbConnection();
+		
 		$pdo_db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-		$sql = "Select top 50 DistributorMobNumber MobileNo,Dm.DistributorId,VoucherSrNo,Location,ivct.InvoiceNo,Convert(date,ivct.modifiedDate) modifiedDate 
+		$sql = "Select top 25 DistributorMobNumber MobileNo,Dm.DistributorId,VoucherSrNo,Location,ivct.InvoiceNo,Convert(date,ivct.modifiedDate) modifiedDate 
 					from [dbo].[InvoiceVoucherConsumptionTrack] ivct(NOLOCK)
 					Inner Join DistributorMaster DM (NOLOCK)
 					On ivct.DistributorId = DM.DistributorId

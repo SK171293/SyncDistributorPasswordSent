@@ -1,9 +1,8 @@
 <?php
-
-$smsCronRoot = str_replace("\SyncDistributorPasswordSent", "", getcwd());
-define('__PATH20__', $smsCronRoot.'\sites\all\modules\VestigePOS\VestigePOS');
-include_once (__PATH20__.'\Business\SendSMS.php');
-include_once (__PATH20__.'\Business\DBHelper.php');
+$smsCronRoot = str_replace("/SyncDistributorPasswordSent", "", getcwd());
+define('__PATH20__', $smsCronRoot.'/sites/all/modules/VestigePOS/VestigePOS');
+include_once (__PATH20__.'/Business/SendSMS.php');
+include_once (__PATH20__.'/Business/DBHelper.php');
 		
 SyncDistributorPasswordSent();
 
