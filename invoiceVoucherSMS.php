@@ -14,6 +14,20 @@ function InvoiceVoucherConsumeSMSSent(){
 		$pdo_db = $connectionString->dbConnection();
 		
 		$pdo_db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+		
+		$sql3="Select KeyValue1 ReportMobileNo,KeyValue2 as Email from Parameter_Master (NOLOCK) where ParameterCode = 'CONTACTFORREPORT' and KeyCode1 in (1) and IsActive=1";
+		$stmt3 = $pdo_db->prepare($sql3);
+		$stmt3->execute();
+		$reportingMobileNoResults = $stmt3->fetchAll(PDO::FETCH_ASSOC);
+		$reportingMobileNo = '';
+		$reportingEmail = '';
+		
+		if(sizeof($reportingMobileNoResults) > 0)
+		{
+			$reportingMobileNo = $reportingMobileNoResults[0]['ReportMobileNo'];
+			$reportingEmail = $reportingMobileNoResults[0]['Email'];
+		}
+		
 		$sql = "Select top 25 DistributorMobNumber MobileNo,Dm.DistributorId,VoucherSrNo,Location,ivct.InvoiceNo,Convert(date,ivct.modifiedDate) modifiedDate 
 					from [dbo].[InvoiceVoucherConsumptionTrack] ivct(NOLOCK)
 					Inner Join DistributorMaster DM (NOLOCK)
@@ -33,7 +47,7 @@ function InvoiceVoucherConsumeSMSSent(){
 				$invoiceNo = $results[$i]['InvoiceNo'];
 				$date = $results[$i]['modifiedDate'];
 				$SendSMS = new SendSMS();
-				$response = $SendSMS -> sendInvoiceVoucherConsumeSMS($mobileNo,$voucherSrNo,$location,$distributorId,$date);
+				$response = $SendSMS -> sendInvoiceVoucherConsumeSMS($mobileNo,$voucherSrNo,$location,$distributorId,$date,$reportingMobileNo,$reportingEmail);
 				$msgApiResponse = json_decode($response,true);
 				$smsResponse = substr($msgApiResponse['msg'],0,4);
 				if($smsResponse == '1701'){
